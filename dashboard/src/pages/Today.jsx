@@ -7,8 +7,8 @@ export default function Today() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    fetch("/blocks/today")
+  const fetchBlocks = () => {
+    fetch("/blocks/today/live")
       .then((res) => {
         if (!res.ok) throw new Error(`API error: ${res.status}`);
         return res.json();
@@ -16,11 +16,18 @@ export default function Today() {
       .then((data) => {
         setBlocks(data.blocks);
         setLoading(false);
+        setError(null);
       })
       .catch(() => {
         setError("Cannot connect to tracker API. Is the server running on port 9147?");
         setLoading(false);
       });
+  };
+
+  useEffect(() => {
+    fetchBlocks();
+    const interval = setInterval(fetchBlocks, 60000);
+    return () => clearInterval(interval);
   }, []);
 
   if (loading) return <p className="text-gray-500">Loading...</p>;
