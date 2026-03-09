@@ -39,6 +39,7 @@ export default function Weekly() {
 
   useEffect(() => {
     setLoading(true);
+    setError(null);
     fetch(`/summary/week?date=${weekDate}`)
       .then((res) => {
         if (!res.ok) throw new Error(`API error: ${res.status}`);
