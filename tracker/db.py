@@ -13,7 +13,7 @@ def init_db(db_path: str | None = None) -> None:
     if path != ":memory:":
         os.makedirs(os.path.dirname(path), exist_ok=True)
 
-    _conn = sqlite3.connect(path)
+    _conn = sqlite3.connect(path, check_same_thread=False)
     _conn.row_factory = sqlite3.Row
     _conn.execute("PRAGMA journal_mode=WAL")
 
