@@ -1,7 +1,7 @@
 import sqlite3
 import pytest
 import json
-from tracker.db import init_db, get_connection, close_db, insert_raw_event, get_raw_events_for_date, insert_work_block, get_work_blocks_for_date
+from tracker.db import init_db, get_connection, close_db, insert_raw_event, get_raw_events_for_date, update_raw_event_end, insert_work_block, get_work_blocks_for_date
 
 
 class TestInitDb:
@@ -179,3 +179,29 @@ class TestWorkBlocks:
         )
         blocks = get_work_blocks_for_date("2026-03-10")
         assert blocks[0]["user_confirmed"] == 0
+
+
+class TestUpdateRawEventEnd:
+    def setup_method(self):
+        init_db(":memory:")
+
+    def teardown_method(self):
+        close_db()
+
+    def test_update_changes_ended_at_and_duration(self):
+        row_id = insert_raw_event("VS Code", "main.py", "2026-03-10T09:00:00", "2026-03-10T09:00:05", 5)
+        update_raw_event_end(row_id, "2026-03-10T09:00:10", 10)
+        events = get_raw_events_for_date("2026-03-10")
+        assert events[0]["ended_at"] == "2026-03-10T09:00:10"
+        assert events[0]["duration_sec"] == 10
+
+    def test_update_does_not_affect_other_fields(self):
+        row_id = insert_raw_event("VS Code", "main.py", "2026-03-10T09:00:00", "2026-03-10T09:00:05", 5)
+        update_raw_event_end(row_id, "2026-03-10T09:00:10", 10)
+        events = get_raw_events_for_date("2026-03-10")
+        assert events[0]["app_name"] == "VS Code"
+        assert events[0]["window_title"] == "main.py"
+        assert events[0]["started_at"] == "2026-03-10T09:00:00"
+
+    def test_update_nonexistent_id_no_error(self):
+        update_raw_event_end(999, "2026-03-10T09:00:10", 10)  # should not raise

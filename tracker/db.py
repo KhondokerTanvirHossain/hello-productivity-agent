@@ -90,6 +90,15 @@ def get_raw_events_for_date(date: str) -> list[dict]:
     return [dict(row) for row in cursor.fetchall()]
 
 
+def update_raw_event_end(event_id: int, ended_at: str, duration_sec: int) -> None:
+    conn = get_connection()
+    conn.execute(
+        "UPDATE raw_events SET ended_at = ?, duration_sec = ? WHERE id = ?",
+        (ended_at, duration_sec, event_id),
+    )
+    conn.commit()
+
+
 def insert_work_block(
     date: str,
     started_at: str,
