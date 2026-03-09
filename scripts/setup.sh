@@ -8,6 +8,7 @@ VENV_DIR="$PROJECT_DIR/.venv"
 VENV_PYTHON="$VENV_DIR/bin/python"
 VENV_UVICORN="$VENV_DIR/bin/uvicorn"
 VITE_BIN="$PROJECT_DIR/dashboard/node_modules/.bin/vite"
+NODE_BIN="$(which node)"
 DATA_DIR="$HOME/.productivity-tracker"
 LOG_DIR="$DATA_DIR/logs"
 LAUNCH_AGENTS_DIR="$HOME/Library/LaunchAgents"
@@ -67,8 +68,14 @@ cat > "$LAUNCH_AGENTS_DIR/$AGENT_PLIST" <<EOF
     <key>ProgramArguments</key>
     <array>
         <string>$VENV_PYTHON</string>
-        <string>$PROJECT_DIR/tracker/agent.py</string>
+        <string>-m</string>
+        <string>tracker.agent</string>
     </array>
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PYTHONPATH</key>
+        <string>$PROJECT_DIR</string>
+    </dict>
     <key>WorkingDirectory</key>
     <string>$PROJECT_DIR</string>
     <key>RunAtLoad</key>
@@ -94,11 +101,18 @@ cat > "$LAUNCH_AGENTS_DIR/$API_PLIST" <<EOF
     <string>com.productivity-tracker.api</string>
     <key>ProgramArguments</key>
     <array>
-        <string>$VENV_UVICORN</string>
+        <string>$VENV_PYTHON</string>
+        <string>-m</string>
+        <string>uvicorn</string>
         <string>api.server:app</string>
         <string>--port</string>
         <string>9147</string>
     </array>
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PYTHONPATH</key>
+        <string>$PROJECT_DIR</string>
+    </dict>
     <key>WorkingDirectory</key>
     <string>$PROJECT_DIR</string>
     <key>RunAtLoad</key>
@@ -124,6 +138,7 @@ cat > "$LAUNCH_AGENTS_DIR/$DASHBOARD_PLIST" <<EOF
     <string>com.productivity-tracker.dashboard</string>
     <key>ProgramArguments</key>
     <array>
+        <string>$NODE_BIN</string>
         <string>$VITE_BIN</string>
         <string>--port</string>
         <string>5173</string>
