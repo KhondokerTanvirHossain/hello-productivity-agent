@@ -1,7 +1,7 @@
 import sqlite3
 import pytest
 import json
-from tracker.db import init_db, get_connection, close_db, insert_raw_event, get_raw_events_for_date, update_raw_event_end, insert_work_block, get_work_blocks_for_date
+from tracker.db import init_db, get_connection, close_db, insert_raw_event, get_raw_events_for_date, update_raw_event_end, insert_work_block, get_work_blocks_for_date, delete_work_blocks_for_date, update_work_block, get_work_blocks_for_range
 
 
 class TestInitDb:
@@ -205,3 +205,100 @@ class TestUpdateRawEventEnd:
 
     def test_update_nonexistent_id_no_error(self):
         update_raw_event_end(999, "2026-03-10T09:00:10", 10)  # should not raise
+
+
+class TestDeleteWorkBlocksForDate:
+    def setup_method(self):
+        init_db(":memory:")
+
+    def teardown_method(self):
+        close_db()
+
+    def test_deletes_blocks_for_date(self):
+        insert_work_block("2026-03-10", "2026-03-10T09:00:00", "2026-03-10T10:00:00", 60, "coding", "coding", '["VS Code"]', None)
+        insert_work_block("2026-03-10", "2026-03-10T10:00:00", "2026-03-10T11:00:00", 60, "meeting", "meeting", '["Zoom"]', None)
+        insert_work_block("2026-03-11", "2026-03-11T09:00:00", "2026-03-11T10:00:00", 60, "coding", "coding", '["VS Code"]', None)
+
+        delete_work_blocks_for_date("2026-03-10")
+
+        assert len(get_work_blocks_for_date("2026-03-10")) == 0
+        assert len(get_work_blocks_for_date("2026-03-11")) == 1
+
+    def test_delete_empty_date_no_error(self):
+        delete_work_blocks_for_date("2026-03-10")  # should not raise
+
+
+class TestUpdateWorkBlock:
+    def setup_method(self):
+        init_db(":memory:")
+
+    def teardown_method(self):
+        close_db()
+
+    def test_update_category(self):
+        block_id = insert_work_block("2026-03-10", "2026-03-10T09:00:00", "2026-03-10T10:00:00", 60, "coding", "coding", '["VS Code"]', None)
+        result = update_work_block(block_id, category="meeting", note=None, user_confirmed=None)
+        assert result is not None
+        assert result["category"] == "meeting"
+        assert result["auto_category"] == "coding"  # unchanged
+
+    def test_update_note(self):
+        block_id = insert_work_block("2026-03-10", "2026-03-10T09:00:00", "2026-03-10T10:00:00", 60, "coding", "coding", '["VS Code"]', None)
+        result = update_work_block(block_id, category=None, note="Sprint planning", user_confirmed=None)
+        assert result["note"] == "Sprint planning"
+        assert result["category"] == "coding"  # unchanged
+
+    def test_update_user_confirmed(self):
+        block_id = insert_work_block("2026-03-10", "2026-03-10T09:00:00", "2026-03-10T10:00:00", 60, "coding", "coding", '["VS Code"]', None)
+        result = update_work_block(block_id, category=None, note=None, user_confirmed=True)
+        assert result["user_confirmed"] == 1
+
+    def test_update_multiple_fields(self):
+        block_id = insert_work_block("2026-03-10", "2026-03-10T09:00:00", "2026-03-10T10:00:00", 60, "coding", "coding", '["VS Code"]', None)
+        result = update_work_block(block_id, category="meeting", note="Standup", user_confirmed=True)
+        assert result["category"] == "meeting"
+        assert result["note"] == "Standup"
+        assert result["user_confirmed"] == 1
+
+    def test_update_nonexistent_returns_none(self):
+        result = update_work_block(999, category="meeting", note=None, user_confirmed=None)
+        assert result is None
+
+    def test_update_no_fields_returns_unchanged(self):
+        block_id = insert_work_block("2026-03-10", "2026-03-10T09:00:00", "2026-03-10T10:00:00", 60, "coding", "coding", '["VS Code"]', None)
+        result = update_work_block(block_id, category=None, note=None, user_confirmed=None)
+        assert result is not None
+        assert result["category"] == "coding"
+
+
+class TestGetWorkBlocksForRange:
+    def setup_method(self):
+        init_db(":memory:")
+
+    def teardown_method(self):
+        close_db()
+
+    def test_returns_blocks_in_range(self):
+        insert_work_block("2026-03-10", "2026-03-10T09:00:00", "2026-03-10T10:00:00", 60, "coding", "coding", '["VS Code"]', None)
+        insert_work_block("2026-03-11", "2026-03-11T09:00:00", "2026-03-11T10:00:00", 60, "meeting", "meeting", '["Zoom"]', None)
+        insert_work_block("2026-03-12", "2026-03-12T09:00:00", "2026-03-12T10:00:00", 60, "admin", "admin", '["Slack"]', None)
+        blocks = get_work_blocks_for_range("2026-03-10", "2026-03-11")
+        assert len(blocks) == 2
+
+    def test_excludes_blocks_outside_range(self):
+        insert_work_block("2026-03-09", "2026-03-09T09:00:00", "2026-03-09T10:00:00", 60, "coding", "coding", '["VS Code"]', None)
+        insert_work_block("2026-03-10", "2026-03-10T09:00:00", "2026-03-10T10:00:00", 60, "meeting", "meeting", '["Zoom"]', None)
+        blocks = get_work_blocks_for_range("2026-03-10", "2026-03-10")
+        assert len(blocks) == 1
+        assert blocks[0]["category"] == "meeting"
+
+    def test_returns_empty_for_no_blocks(self):
+        blocks = get_work_blocks_for_range("2026-03-10", "2026-03-16")
+        assert blocks == []
+
+    def test_ordered_by_started_at(self):
+        insert_work_block("2026-03-10", "2026-03-10T14:00:00", "2026-03-10T15:00:00", 60, "meeting", "meeting", '["Zoom"]', None)
+        insert_work_block("2026-03-10", "2026-03-10T09:00:00", "2026-03-10T10:00:00", 60, "coding", "coding", '["VS Code"]', None)
+        blocks = get_work_blocks_for_range("2026-03-10", "2026-03-10")
+        assert blocks[0]["started_at"] == "2026-03-10T09:00:00"
+        assert blocks[1]["started_at"] == "2026-03-10T14:00:00"

@@ -127,3 +127,50 @@ def get_work_blocks_for_date(date: str) -> list[dict]:
         (date,),
     )
     return [dict(row) for row in cursor.fetchall()]
+
+
+def delete_work_blocks_for_date(date: str) -> None:
+    conn = get_connection()
+    conn.execute("DELETE FROM work_blocks WHERE date = ?", (date,))
+    conn.commit()
+
+
+def update_work_block(
+    block_id: int,
+    category: str | None,
+    note: str | None,
+    user_confirmed: bool | None,
+) -> dict | None:
+    conn = get_connection()
+    updates = []
+    params = []
+    if category is not None:
+        updates.append("category = ?")
+        params.append(category)
+    if note is not None:
+        updates.append("note = ?")
+        params.append(note)
+    if user_confirmed is not None:
+        updates.append("user_confirmed = ?")
+        params.append(1 if user_confirmed else 0)
+    if updates:
+        params.append(block_id)
+        conn.execute(
+            f"UPDATE work_blocks SET {', '.join(updates)} WHERE id = ?",
+            params,
+        )
+        conn.commit()
+    cursor = conn.execute("SELECT * FROM work_blocks WHERE id = ?", (block_id,))
+    row = cursor.fetchone()
+    if row is None:
+        return None
+    return dict(row)
+
+
+def get_work_blocks_for_range(start_date: str, end_date: str) -> list[dict]:
+    conn = get_connection()
+    cursor = conn.execute(
+        "SELECT * FROM work_blocks WHERE date BETWEEN ? AND ? ORDER BY started_at",
+        (start_date, end_date),
+    )
+    return [dict(row) for row in cursor.fetchall()]
