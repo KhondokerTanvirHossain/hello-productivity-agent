@@ -4,7 +4,7 @@ from datetime import date, timedelta
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
-from tracker.db import get_work_blocks_for_date, get_work_blocks_for_range, update_work_block
+from tracker.db import get_work_blocks_for_date, get_work_blocks_for_range, update_work_block, has_confirmed_blocks_for_date
 from tracker.merger import merge_events_for_date
 
 router = APIRouter()
@@ -40,7 +40,8 @@ def get_blocks_today():
 @router.get("/blocks/today/live")
 def get_blocks_today_live():
     today = date.today().isoformat()
-    merge_events_for_date(today)
+    if not has_confirmed_blocks_for_date(today):
+        merge_events_for_date(today)
     blocks = get_work_blocks_for_date(today)
     return {
         "date": today,

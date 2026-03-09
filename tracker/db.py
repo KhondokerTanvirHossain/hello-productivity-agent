@@ -123,10 +123,19 @@ def insert_work_block(
 def get_work_blocks_for_date(date: str) -> list[dict]:
     conn = get_connection()
     cursor = conn.execute(
-        "SELECT * FROM work_blocks WHERE date = ?",
+        "SELECT * FROM work_blocks WHERE date = ? ORDER BY started_at",
         (date,),
     )
     return [dict(row) for row in cursor.fetchall()]
+
+
+def has_confirmed_blocks_for_date(date: str) -> bool:
+    conn = get_connection()
+    cursor = conn.execute(
+        "SELECT 1 FROM work_blocks WHERE date = ? AND user_confirmed = 1 LIMIT 1",
+        (date,),
+    )
+    return cursor.fetchone() is not None
 
 
 def delete_work_blocks_for_date(date: str) -> None:
