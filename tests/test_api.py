@@ -1,6 +1,6 @@
 import json
 from fastapi.testclient import TestClient
-from tracker.db import init_db, close_db, insert_work_block
+from tracker.db import init_db, close_db, insert_work_block, insert_raw_event
 from api.server import app
 
 
@@ -138,3 +138,30 @@ class TestPatchBlock:
     def test_404_for_missing_block(self):
         response = self.client.patch("/blocks/999", json={"category": "meeting"})
         assert response.status_code == 404
+
+
+class TestGetBlocksTodayLive:
+    def setup_method(self):
+        _setup_db()
+        self.client = TestClient(app, raise_server_exceptions=False)
+
+    def teardown_method(self):
+        _teardown_db()
+
+    def test_returns_empty_when_no_raw_events(self):
+        response = self.client.get("/blocks/today/live")
+        assert response.status_code == 200
+        data = response.json()
+        assert data["blocks"] == []
+
+    def test_merges_raw_events_into_blocks(self):
+        from datetime import date
+        today = date.today().isoformat()
+        # Insert raw events long enough to survive merge filters (>2min each, >10min total)
+        insert_raw_event("VS Code", "main.py", f"{today}T09:00:00", f"{today}T09:15:00", 900)
+        insert_raw_event("VS Code", "utils.py", f"{today}T09:15:00", f"{today}T09:30:00", 900)
+        response = self.client.get("/blocks/today/live")
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data["blocks"]) >= 1
+        assert data["blocks"][0]["category"] == "coding"

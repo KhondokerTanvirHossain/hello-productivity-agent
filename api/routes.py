@@ -5,6 +5,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
 from tracker.db import get_work_blocks_for_date, get_work_blocks_for_range, update_work_block
+from tracker.merger import merge_events_for_date
 
 router = APIRouter()
 
@@ -29,6 +30,17 @@ def _format_block(block: dict) -> dict:
 @router.get("/blocks/today")
 def get_blocks_today():
     today = date.today().isoformat()
+    blocks = get_work_blocks_for_date(today)
+    return {
+        "date": today,
+        "blocks": [_format_block(b) for b in blocks],
+    }
+
+
+@router.get("/blocks/today/live")
+def get_blocks_today_live():
+    today = date.today().isoformat()
+    merge_events_for_date(today)
     blocks = get_work_blocks_for_date(today)
     return {
         "date": today,
