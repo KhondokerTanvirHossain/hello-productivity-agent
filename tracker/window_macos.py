@@ -39,6 +39,8 @@ def _run_osascript(script: str) -> str | None:
             ["osascript", "-e", script],
             capture_output=True, text=True, timeout=2,
         )
+        if result.returncode != 0:
+            return None
         text = result.stdout.strip()
         return text if text else None
     except Exception:
