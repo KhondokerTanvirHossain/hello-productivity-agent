@@ -4,7 +4,7 @@ import logging
 from datetime import datetime
 
 from tracker.db import init_db, close_db, insert_raw_event, update_raw_event_end
-from tracker.window_macos import get_active_window
+from tracker.window_macos import get_active_window, check_accessibility
 from tracker.merger import merge_events_for_date
 from tracker.notifier import send_eod_notification
 
@@ -88,6 +88,7 @@ def main() -> None:
     signal.signal(signal.SIGINT, _shutdown_handler)
 
     init_db()
+    check_accessibility()
     logger.info("Productivity tracker started")
 
     state: dict = {"current_event": None, "notified_date": None}

@@ -108,7 +108,8 @@ def _get_active_app() -> tuple[str, int] | None:
     return (app_name, pid)
 
 
-def _get_window_title(pid: int) -> str | None:
+def _get_window_title_quartz(pid: int) -> str | None:
+    """Get window title via Quartz API (original method, often returns empty)."""
     from Quartz import (
         CGWindowListCopyWindowInfo,
         kCGWindowListOptionOnScreenOnly,
@@ -128,7 +129,40 @@ def _get_window_title(pid: int) -> str | None:
     return None
 
 
+def check_accessibility() -> bool:
+    """Check if the process has Accessibility permission. Logs a warning if not."""
+    try:
+        import objc
+        from Foundation import NSBundle
+
+        bundle = NSBundle.bundleWithPath_(
+            "/System/Library/Frameworks/ApplicationServices.framework"
+            "/Frameworks/HIServices.framework"
+        )
+        bundle.load()
+        fn: dict = {}
+        objc.loadBundleFunctions(bundle, fn, [("AXIsProcessTrusted", b"Z")])
+        trusted = fn["AXIsProcessTrusted"]()
+        if not trusted:
+            logger.warning(
+                "Accessibility permission not granted. Window titles for Firefox "
+                "and other apps will be empty. Grant access in System Preferences > "
+                "Privacy & Security > Accessibility for the Python binary."
+            )
+        return trusted
+    except Exception:
+        logger.debug("Could not check accessibility status", exc_info=True)
+        return False
+
+
 def get_active_window() -> tuple[str, str | None] | None:
+    """Get the active window's app name and title using a 3-tier fallback.
+
+    Priority:
+    1. AppleScript (Chrome/Safari/Arc/Brave — gets title + URL)
+    2. Accessibility API (Firefox, VS Code, terminals — gets window title)
+    3. Quartz kCGWindowName (final fallback)
+    """
     try:
         app_info = _get_active_app()
         if app_info is None:
@@ -136,8 +170,20 @@ def get_active_window() -> tuple[str, str | None] | None:
         app_name, pid = app_info
         if app_name in SKIP_APPS:
             return None
-        title = _get_window_title(pid)
-        return (app_name, title)
+
+        # Tier 1: AppleScript for supported browsers
+        browser_title = _get_browser_info_applescript(app_name)
+        if browser_title:
+            return (app_name, browser_title)
+
+        # Tier 2: Accessibility API
+        ax_title = _get_window_title_ax(pid)
+        if ax_title:
+            return (app_name, ax_title)
+
+        # Tier 3: Quartz (original method)
+        quartz_title = _get_window_title_quartz(pid)
+        return (app_name, quartz_title)
     except Exception:
         logger.warning("Failed to get active window", exc_info=True)
         return None
