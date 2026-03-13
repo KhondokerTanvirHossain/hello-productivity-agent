@@ -1,6 +1,6 @@
 // electron/tray.ts
 import { Tray, Menu, BrowserWindow, nativeImage, app } from "electron";
-import { isTrackerPaused, setTrackerPaused } from "./ipc";
+import { isTrackerPaused, setTrackerPaused } from "./ipc.js";
 
 export function createTray(mainWindow: BrowserWindow): Tray {
   const icon = nativeImage.createEmpty();

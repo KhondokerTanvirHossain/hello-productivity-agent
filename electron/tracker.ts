@@ -1,9 +1,9 @@
 // electron/tracker.ts
 import activeWindow from "active-win";
 import { execFile } from "child_process";
-import { insertRawEvent, updateRawEventEnd } from "./db";
-import { mergeEventsForDate } from "./merger";
-import { isTrackerPaused } from "./ipc";
+import { insertRawEvent, updateRawEventEnd } from "./db.js";
+import { mergeEventsForDate } from "./merger.js";
+import { isTrackerPaused } from "./ipc.js";
 
 const POLL_INTERVAL_MS = 5_000;
 const MERGE_INTERVAL_MS = 5 * 60 * 1000;

@@ -1,12 +1,12 @@
 // electron/main.ts
 import { app, BrowserWindow, Tray } from "electron";
 import * as path from "path";
-import { registerIpcHandlers } from "./ipc";
-import { createTray } from "./tray";
-import { startNotifier, stopNotifier } from "./notifier";
-import { initDb, closeDb } from "./db";
-import { migrateFromLegacyPath } from "./migration";
-import { startTracker, stopTracker } from "./tracker";
+import { registerIpcHandlers } from "./ipc.js";
+import { createTray } from "./tray.js";
+import { startNotifier, stopNotifier } from "./notifier.js";
+import { initDb, closeDb } from "./db.js";
+import { migrateFromLegacyPath } from "./migration.js";
+import { startTracker, stopTracker } from "./tracker.js";
 
 let mainWindow: BrowserWindow | null = null;
 let tray: Tray | null = null;
@@ -29,7 +29,7 @@ function createWindow(): BrowserWindow {
 
   // In dev, load from Vite dev server; in prod, load built files
   if (process.env.NODE_ENV === "development") {
-    win.loadURL("http://localhost:5173");
+    win.loadURL(process.env.VITE_DEV_URL || "http://localhost:5173");
   } else {
     win.loadFile(path.join(__dirname, "../../dashboard/dist/index.html"));
   }

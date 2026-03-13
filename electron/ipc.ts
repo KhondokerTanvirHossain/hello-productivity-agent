@@ -5,8 +5,8 @@ import {
   getWorkBlocksForRange,
   updateWorkBlock,
   hasConfirmedBlocksForDate,
-} from "./db";
-import { mergeEventsForDate } from "./merger";
+} from "./db.js";
+import { mergeEventsForDate } from "./merger.js";
 
 function formatBlock(block: any): any {
   const appsRaw = block.apps_used;

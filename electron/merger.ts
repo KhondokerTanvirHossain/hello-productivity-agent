@@ -1,10 +1,10 @@
 // electron/merger.ts
-import { categorize } from "./categorizer";
+import { categorize } from "./categorizer.js";
 import {
   getRawEventsForDate,
   deleteWorkBlocksForDate,
   insertWorkBlock,
-} from "./db";
+} from "./db.js";
 
 function parseDt(dtStr: string): Date {
   return new Date(dtStr); // ISO 8601 with T separator is well-defined in ECMAScript
