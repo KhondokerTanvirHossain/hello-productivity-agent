@@ -21,7 +21,7 @@ function createWindow(): BrowserWindow {
     height: 700,
     show: false,
     webPreferences: {
-      preload: path.join(__dirname, "electron/preload.js"),
+      preload: path.join(__dirname, "preload.js"),
       contextIsolation: true,
       nodeIntegration: false,
     },
@@ -31,7 +31,7 @@ function createWindow(): BrowserWindow {
   if (process.env.NODE_ENV === "development") {
     win.loadURL("http://localhost:5173");
   } else {
-    win.loadFile(path.join(__dirname, "../dashboard/dist/index.html"));
+    win.loadFile(path.join(__dirname, "../../dashboard/dist/index.html"));
   }
 
   // Hide instead of close
