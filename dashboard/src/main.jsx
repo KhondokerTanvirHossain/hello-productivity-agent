@@ -1,6 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { BrowserRouter, useNavigate } from "react-router-dom";
+import { HashRouter, useNavigate } from "react-router-dom";
 import App from "./App";
 import "./index.css";
 
@@ -18,9 +18,9 @@ function NavigationListener() {
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-    <BrowserRouter>
+    <HashRouter>
       <NavigationListener />
       <App />
-    </BrowserRouter>
+    </HashRouter>
   </React.StrictMode>
 );

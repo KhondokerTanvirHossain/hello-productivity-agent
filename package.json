@@ -8,7 +8,7 @@
     "dev": "concurrently \"npm run dev:electron\" \"npm run dev:dashboard\"",
     "dev:electron": "tsc -p tsconfig.main.json --watch",
     "dev:dashboard": "cd dashboard && npm run dev",
-    "build:electron": "tsc -p tsconfig.main.json",
+    "build:electron": "tsc -p tsconfig.main.json && tsc -p tsconfig.preload.json",
     "build:dashboard": "cd dashboard && npm run build",
     "build": "npm run build:electron && npm run build:dashboard",
     "start": "npm run build:electron && electron .",
@@ -16,6 +16,29 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "postinstall": "electron-rebuild"
+  },
+  "build": {
+    "appId": "com.productivity-tracker.app",
+    "productName": "Productivity Tracker",
+    "files": [
+      "dist-electron/**/*",
+      "dashboard/dist/**/*"
+    ],
+    "mac": {
+      "category": "public.app-category.productivity",
+      "target": [
+        { "target": "dmg", "arch": ["arm64", "x64"] }
+      ]
+    },
+    "dmg": {
+      "title": "Productivity Tracker",
+      "contents": [
+        { "x": 130, "y": 220 },
+        { "x": 410, "y": 220, "type": "link", "path": "/Applications" }
+      ]
+    },
+    "nativeRebuilder": "sequential",
+    "publish": null
   },
   "dependencies": {
     "active-win": "^7.0.0",
@@ -27,7 +50,7 @@
     "@types/better-sqlite3": "^7.6.12",
     "@types/node-cron": "^3.0.11",
     "concurrently": "^9.1.2",
-    "electron": "^41.0.2",
+    "electron": "^40.8.2",
     "electron-builder": "^25.1.8",
     "typescript": "^5.7.3",
     "vitest": "^2.1.8"

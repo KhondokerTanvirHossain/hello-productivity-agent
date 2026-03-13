@@ -10,6 +10,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
   pauseTracking: () => ipcRenderer.invoke("pause-tracking"),
   resumeTracking: () => ipcRenderer.invoke("resume-tracking"),
   onNavigate: (callback: (route: string) => void) => {
+    ipcRenderer.removeAllListeners("navigate");
     ipcRenderer.on("navigate", (_event, route: string) => callback(route));
   },
 });
