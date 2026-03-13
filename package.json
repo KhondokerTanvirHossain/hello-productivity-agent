@@ -2,13 +2,12 @@
   "name": "productivity-tracker",
   "version": "1.0.0",
   "private": true,
-  "type": "module",
   "main": "dist-electron/electron/main.js",
   "scripts": {
     "dev": "concurrently \"npm run dev:electron\" \"npm run dev:dashboard\"",
     "dev:electron": "npx tsc -p tsconfig.main.json --watch",
     "dev:dashboard": "cd dashboard && npm run dev",
-    "build:electron": "npx tsc -p tsconfig.main.json && npx tsc -p tsconfig.preload.json",
+    "build:electron": "npx esbuild electron/main.ts --bundle --platform=node --target=node20 --external:electron --external:better-sqlite3 --external:node-cron --external:active-win --format=cjs --outfile=dist-electron/electron/main.js && npx tsc -p tsconfig.preload.json",
     "build:dashboard": "cd dashboard && npm run build",
     "build": "npm run build:electron && npm run build:dashboard",
     "start": "npm run build:electron && electron .",
@@ -27,14 +26,28 @@
     "mac": {
       "category": "public.app-category.productivity",
       "target": [
-        { "target": "dmg", "arch": ["arm64", "x64"] }
+        {
+          "target": "dmg",
+          "arch": [
+            "arm64",
+            "x64"
+          ]
+        }
       ]
     },
     "dmg": {
       "title": "Productivity Tracker",
       "contents": [
-        { "x": 130, "y": 220 },
-        { "x": 410, "y": 220, "type": "link", "path": "/Applications" }
+        {
+          "x": 130,
+          "y": 220
+        },
+        {
+          "x": 410,
+          "y": 220,
+          "type": "link",
+          "path": "/Applications"
+        }
       ]
     },
     "nativeRebuilder": "sequential",
@@ -52,6 +65,7 @@
     "concurrently": "^9.1.2",
     "electron": "^40.8.2",
     "electron-builder": "^25.1.8",
+    "electron-vite": "^5.0.0",
     "typescript": "^5.7.3",
     "vitest": "^2.1.8"
   }

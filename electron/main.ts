@@ -1,16 +1,12 @@
 // electron/main.ts
 import { app, BrowserWindow, Tray } from "electron";
 import * as path from "path";
-import { fileURLToPath } from "url";
 import { registerIpcHandlers } from "./ipc.js";
 import { createTray } from "./tray.js";
 import { startNotifier, stopNotifier } from "./notifier.js";
 import { initDb, closeDb } from "./db.js";
 import { migrateFromLegacyPath } from "./migration.js";
 import { startTracker, stopTracker } from "./tracker.js";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 let mainWindow: BrowserWindow | null = null;
 let tray: Tray | null = null;
