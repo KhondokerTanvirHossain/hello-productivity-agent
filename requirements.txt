@@ -1,4 +1,0 @@
-pyobjc-framework-Cocoa
-pyobjc-framework-Quartz
-fastapi
-uvicorn
