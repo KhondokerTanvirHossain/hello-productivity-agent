@@ -9,6 +9,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { CATEGORIES } from "../constants";
+import { api } from "../api";
 
 function formatDate(dateStr) {
   const d = new Date(dateStr + "T00:00:00");
@@ -40,17 +41,13 @@ export default function Weekly() {
   useEffect(() => {
     setLoading(true);
     setError(null);
-    fetch(`/summary/week?date=${weekDate}`)
-      .then((res) => {
-        if (!res.ok) throw new Error(`API error: ${res.status}`);
-        return res.json();
-      })
+    api.getSummaryWeek(weekDate)
       .then((d) => {
         setData(d);
         setLoading(false);
       })
       .catch(() => {
-        setError("Cannot connect to tracker API. Is the server running on port 9147?");
+        setError("Cannot connect to tracker. Is the app running?");
         setLoading(false);
       });
   }, [weekDate]);

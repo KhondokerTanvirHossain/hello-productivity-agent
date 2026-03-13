@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import BlockCard from "../components/BlockCard";
 import TimelineBar from "../components/TimelineBar";
+import { api } from "../api";
 
 export default function Today() {
   const [blocks, setBlocks] = useState([]);
@@ -8,18 +9,14 @@ export default function Today() {
   const [error, setError] = useState(null);
 
   const fetchBlocks = () => {
-    fetch("/blocks/today/live")
-      .then((res) => {
-        if (!res.ok) throw new Error(`API error: ${res.status}`);
-        return res.json();
-      })
+    api.getBlocksTodayLive()
       .then((data) => {
         setBlocks(data.blocks);
         setLoading(false);
         setError(null);
       })
       .catch(() => {
-        setError("Cannot connect to tracker API. Is the server running on port 9147?");
+        setError("Cannot connect to tracker. Is the app running?");
         setLoading(false);
       });
   };

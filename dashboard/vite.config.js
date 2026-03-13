@@ -3,11 +3,8 @@ import react from "@vitejs/plugin-react";
 
 export default defineConfig({
   plugins: [react()],
+  base: "./", // Relative paths for Electron file:// loading
   server: {
     port: 5173,
-    proxy: {
-      "/blocks": "http://localhost:9147",
-      "/summary": "http://localhost:9147",
-    },
   },
 });

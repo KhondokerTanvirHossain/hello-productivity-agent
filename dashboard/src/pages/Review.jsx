@@ -3,6 +3,7 @@ import { PieChart, Pie, Cell, Legend, Tooltip } from "recharts";
 import { CATEGORIES } from "../constants";
 import BlockCard from "../components/BlockCard";
 import TimelineBar from "../components/TimelineBar";
+import { api } from "../api";
 
 export default function Review() {
   const [blocks, setBlocks] = useState([]);
@@ -13,18 +14,14 @@ export default function Review() {
   const [done, setDone] = useState(false);
 
   useEffect(() => {
-    fetch("/blocks/today")
-      .then((res) => {
-        if (!res.ok) throw new Error(`API error: ${res.status}`);
-        return res.json();
-      })
+    api.getBlocksToday()
       .then((data) => {
         setBlocks(data.blocks);
         setOriginalBlocks(JSON.parse(JSON.stringify(data.blocks)));
         setLoading(false);
       })
-      .catch((err) => {
-        setError("Cannot connect to tracker API. Is the server running on port 9147?");
+      .catch(() => {
+        setError("Cannot connect to tracker. Is the app running?");
         setLoading(false);
       });
   }, []);
@@ -46,18 +43,11 @@ export default function Review() {
           block.note !== original.note ||
           block.user_confirmed !== original.user_confirmed;
         if (changed) {
-          const res = await fetch(`/blocks/${block.id}`, {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              category: block.category,
-              note: block.note || null,
-              user_confirmed: block.user_confirmed,
-            }),
+          await api.updateBlock(block.id, {
+            category: block.category,
+            note: block.note || null,
+            user_confirmed: block.user_confirmed,
           });
-          if (!res.ok) {
-            console.error(`Failed to save block ${block.id}`);
-          }
         }
       }
       setDone(true);
