@@ -25,6 +25,12 @@ npm run dist          # builds the DMG
 npm start
 ```
 
+### Clean build (if app shows blank screen or stale UI)
+
+```bash
+rm -rf dist-electron dashboard/dist && npm start
+```
+
 ## Uninstall
 
 1. Quit the app (menu bar icon → Quit)
