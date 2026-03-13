@@ -6,9 +6,9 @@
   "main": "dist-electron/electron/main.js",
   "scripts": {
     "dev": "concurrently \"npm run dev:electron\" \"npm run dev:dashboard\"",
-    "dev:electron": "tsc -p tsconfig.main.json --watch",
+    "dev:electron": "npx tsc -p tsconfig.main.json --watch",
     "dev:dashboard": "cd dashboard && npm run dev",
-    "build:electron": "tsc -p tsconfig.main.json && tsc -p tsconfig.preload.json",
+    "build:electron": "npx tsc -p tsconfig.main.json && npx tsc -p tsconfig.preload.json",
     "build:dashboard": "cd dashboard && npm run build",
     "build": "npm run build:electron && npm run build:dashboard",
     "start": "npm run build:electron && electron .",
